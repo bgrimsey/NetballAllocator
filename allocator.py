@@ -17,6 +17,61 @@ women = 0
 men = 0
 players = []
 
+def get_male_candidates(players, quarter, positions_group, max_quarters):
+    """
+    Returns a list of male players eligible for assignment.
+
+    Args:
+        players (list): List of player dicts.
+        quarter (str): Quarter name, e.g., 'Q1'.
+        positions_group (list): Positions to check, e.g., ATTACK_POS.
+        max_quarters (int): Maximum quarters a male can play.
+
+    Returns:
+        list: Eligible male players.
+    """
+    return [
+        p for p in players
+        if p['gender'] == 'M'
+        and not p[quarter]
+        and any(pos in positions_group for pos in p['positions'])
+        and p['quarters'] < max_quarters
+    ]
+
+def assign_random_player(team_allocations, candidates, quarter, position_group):
+    """
+    Picks a random eligible player from candidates, chooses a random position
+    from position_group that the player can play, and assigns them to team_allocations.
+
+    Args:
+        team_allocations (list): List of dicts storing the allocations.
+        candidates (list): Eligible player dicts.
+        quarter (str): Quarter being assigned, e.g., 'Q1'.
+        position_group (list): Positions this player can be assigned from.
+    
+    Returns:
+        bool: True if a player was assigned, False if no candidates.
+    """
+    if not candidates:
+        return False
+
+    chosen = random.choice(candidates)
+    pos_choices = [pos for pos in position_group if pos in chosen['positions']]
+    if not pos_choices:
+        return False
+
+    assigned_position = random.choice(pos_choices)
+
+    team_allocations.append({
+        'Quarter': quarter,
+        'Name': chosen['name'],
+        'Assigned Position': assigned_position
+    })
+    chosen[quarter] = True
+    chosen['quarters'] += 1
+
+    return True
+
 # Read the CSV
 with open(input_file, 'r') as csvfile:
     reader = csv.DictReader(csvfile)
@@ -55,80 +110,19 @@ for quarter in QUARTERS:
     man_center = False
     man_defence = False
 
+    male_mid_candidates    = get_male_candidates(players, quarter, MID_POS, men_quarters)
+    man_center = assign_random_player(team_allocations, male_mid_candidates, quarter, MID_POS)
 
-    # ---- Attack ----
-    male_attack_candidates = [
-        p for p in players
-        if p['gender'] == 'M'
-        and not p[quarter]
-        and any(pos in ATTACK_POS for pos in p['positions'])
-        and p['quarters'] < men_quarters
-    ]
+    male_attack_candidates = get_male_candidates(players, quarter, ATTACK_POS, men_quarters)
+    man_attack = assign_random_player(team_allocations, male_attack_candidates, quarter, ATTACK_POS)
 
-    if male_attack_candidates:
-        chosen = random.choice(male_attack_candidates)
-        pos_choices = [p for p in ATTACK_POS if p in chosen['positions']]
-        assigned_position = random.choice(pos_choices)
+    male_def_candidates    = get_male_candidates(players, quarter, DEFENCE_POS, men_quarters)
+    man_defence = assign_random_player(team_allocations, male_def_candidates, quarter, DEFENCE_POS)
 
-        team_allocations.append({
-            'Quarter': quarter,
-            'Name': chosen['name'],
-            'Assigned Position': assigned_position
-        })
-        chosen[quarter] = True
-        chosen['quarters'] += 1
-        man_attack = True
+    positions_this_q = POSITIONS[:]
+    random.shuffle(positions_this_q)
 
-
-    # ---- Mid Court ----
-    male_mid_candidates = [
-        p for p in players
-        if p['gender'] == 'M'
-        and not p[quarter]
-        and any(pos in MID_POS for pos in p['positions'])
-        and p['quarters'] < men_quarters
-    ]
-
-    if male_mid_candidates:
-        chosen = random.choice(male_mid_candidates)
-        pos_choices = [p for p in MID_POS if p in chosen['positions']]
-        assigned_position = random.choice(pos_choices)
-
-        team_allocations.append({
-            'Quarter': quarter,
-            'Name': chosen['name'],
-            'Assigned Position': assigned_position
-        })
-        chosen[quarter] = True
-        chosen['quarters'] += 1
-        man_center = True
-
-
-    # ---- Defence ----
-    male_def_candidates = [
-        p for p in players
-        if p['gender'] == 'M'
-        and not p[quarter]
-        and any(pos in DEFENCE_POS for pos in p['positions'])
-        and p['quarters'] < men_quarters
-    ]
-
-    if male_def_candidates:
-        chosen = random.choice(male_def_candidates)
-        pos_choices = [p for p in DEFENCE_POS if p in chosen['positions']]
-        assigned_position = random.choice(pos_choices)
-
-        team_allocations.append({
-            'Quarter': quarter,
-            'Name': chosen['name'],
-            'Assigned Position': assigned_position
-        })
-        chosen[quarter] = True
-        chosen['quarters'] += 1
-        man_defence = True
-
-
-    for position in POSITIONS:
+    for position in positions_this_q:
 
         # If that position has already been allocated by the above logic
         if any(t['Quarter'] == quarter and t['Assigned Position'] == position for t in team_allocations):

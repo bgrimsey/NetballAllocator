@@ -1,11 +1,10 @@
 Name,Gender,Preferred Positions
-Ava,F,C;WA;GA;WD
-Chloe,F,C;WD;WA
-Bella,F,C;WA;WD;GA;GD
-Lisette,F,C;GD;WD
-Sara,F,C;WA;GA
-Maddy,F,C;GA;WA;WD;GD;GS
-Billy,M,C;GD;GK
-Will,M,C;WA;WD;GD
-Milo,M,C;WD;GD;WA;GK
-Ben,M,C;GK;GD;WD
+Kirrily,F,GS;GD;GK
+Mads,F,GS;GA
+Chloe,F,GS;WD
+Milo,M,GS;GD;GA
+Ava,F,GS;WA
+Josh,M,WD;GD;GK
+Billy,M,GD;WA;C
+Lisette,F,WD;GD;WA
+Ben,M,GA;C
